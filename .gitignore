@@ -33,3 +33,6 @@ lerna-debug.log*
 flowdb
 *-credentials-*
 .env.testnet.local
+kavan1.pkey
+
+*flow.json
