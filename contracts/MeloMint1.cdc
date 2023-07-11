@@ -1,4 +1,4 @@
-pub contract MeloMint1 {
+pub contract MeloMint {
 
     pub let SongCollectionStoragePath: StoragePath
     pub let SongCollectionPrivatePath: PrivatePath
@@ -28,7 +28,7 @@ pub contract MeloMint1 {
         pub var userAddress: Address
 
         init (name: String, email: String, type: String, userAddress: Address) {
-            self.id = MeloMint1.userIdCount
+            self.id = MeloMint.userIdCount
             self.name = name
             self.email = email
             self.following = {}
@@ -36,7 +36,7 @@ pub contract MeloMint1 {
             self.type = type
             self.likedSongs = []
             self.userAddress = userAddress
-            MeloMint1.userIdCount = MeloMint1.userIdCount + 1
+            MeloMint.userIdCount = MeloMint.userIdCount + 1
         }
 
         pub fun addFollowing(creatorId: UInt64, addr: Address) {
@@ -47,7 +47,7 @@ pub contract MeloMint1 {
     }
 
     pub fun createUser(name: String, email: String, type: String, userAddress: Address): User {
-        var newUser: MeloMint1.User = User(name: name, email: email, type: type, userAddress: userAddress)
+        var newUser: MeloMint.User = User(name: name, email: email, type: type, userAddress: userAddress)
         self.users.insert(key: self.userIdCount, newUser)
         return newUser
     }
@@ -67,13 +67,13 @@ pub contract MeloMint1 {
 
         init(name: String, price: UInt, img: String, creatorAdress: Address) {
             self.songPublished = {}
-            self.id = MeloMint1.creatorIdCount
+            self.id = MeloMint.creatorIdCount
             self.name = name
             self.price = price
             self.follower = {}
             self.img = img
             self.creatorAddress = creatorAdress
-            MeloMint1.creatorIdCount = MeloMint1.creatorIdCount + 1
+            MeloMint.creatorIdCount = MeloMint.creatorIdCount + 1
         }
 
         pub fun addFollower(userId: UInt64, addr: Address) {
@@ -101,7 +101,7 @@ pub contract MeloMint1 {
     }
 
     pub fun CreateCreator(name: String, price: UInt, img: String, creatorAdress: Address): Creator {
-        var newCreator: MeloMint1.Creator = Creator(name: name, price: price, img: img, creatorAdress: creatorAdress)
+        var newCreator: MeloMint.Creator = Creator(name: name, price: price, img: img, creatorAdress: creatorAdress)
         self.creators.insert(key: self.creatorIdCount, newCreator)
         return newCreator
     }
@@ -116,20 +116,20 @@ pub contract MeloMint1 {
         pub var url: String
 
         init(name: String, creator: Address, img: String, url: String) {
-            self.id = MeloMint1.songIdCount
+            self.id = MeloMint.songIdCount
             self.name = name
             self.creator = creator
             self.numberOfLikes = 0
             self.img = img
             self.url = url
             self.createdAt = getCurrentBlock().timestamp
-            MeloMint1.songIdCount = MeloMint1.songIdCount + 1
+            MeloMint.songIdCount = MeloMint.songIdCount + 1
         }
     }
 
     pub fun createSong(name: String, creator: Address, img: String, url: String, creatorId: UInt64): Song? {
         if (creator == self.getCreatorById(creatorId: creatorId).creatorAddress) {
-            var newSong: MeloMint1.Song = Song(name: name, creator: creator, img: img, url: url)
+            var newSong: MeloMint.Song = Song(name: name, creator: creator, img: img, url: url)
             self.getCreatorById(creatorId: creatorId).addNewSong(song: newSong, addr: creator)
             self.songs.insert(key: self.songIdCount, newSong)
             return newSong
