@@ -9,7 +9,7 @@ pub contract MeloMint {
 
     access(contract) var userAddresses: {Address: UInt64}
     access(contract) var creatorAddresses: {Address: UInt64}
-    access(contract) var songAddresses: {Address: UInt64}
+    access(contract) var songAddresses: {Address: [UInt64]}
 
     access(contract) var userIdCount: UInt64
     access(contract) var creatorIdCount: UInt64
@@ -49,6 +49,7 @@ pub contract MeloMint {
     pub fun createUser(name: String, email: String, type: String, userAddress: Address): User {
         var newUser: MeloMint.User = User(name: name, email: email, type: type, userAddress: userAddress)
         self.users.insert(key: self.userIdCount, newUser)
+        self.userAddresses.insert(key: userAddress, newUser.id)
         return newUser
     }
 
@@ -103,6 +104,7 @@ pub contract MeloMint {
     pub fun CreateCreator(name: String, price: UInt, img: String, creatorAdress: Address): Creator {
         var newCreator: MeloMint.Creator = Creator(name: name, price: price, img: img, creatorAdress: creatorAdress)
         self.creators.insert(key: self.creatorIdCount, newCreator)
+        self.creatorAddresses.insert(key: creatorAdress, newCreator.id)
         return newCreator
     }
 
@@ -128,10 +130,15 @@ pub contract MeloMint {
     }
 
     pub fun createSong(name: String, creator: Address, img: String, url: String, creatorId: UInt64): Song? {
-        if (creator == self.getCreatorById(creatorId: creatorId).creatorAddress) {
+        if creator == self.getCreatorById(creatorId: creatorId).creatorAddress {
             var newSong: MeloMint.Song = Song(name: name, creator: creator, img: img, url: url)
             self.getCreatorById(creatorId: creatorId).addNewSong(song: newSong, addr: creator)
             self.songs.insert(key: self.songIdCount, newSong)
+            if self.songAddresses.containsKey(creator) {
+                self.songAddresses[creator]!.append(newSong.id)
+            } else {
+                self.songAddresses.insert(key: creator, [newSong.id])
+            }
             return newSong
         }
         return nil
@@ -209,7 +216,7 @@ pub contract MeloMint {
         return self.songs[songId] != nil
     }
 
-    pub fun getSongIdByAddress(addr: Address): UInt64 {
+    pub fun getSongsIdByAddress(addr: Address): [UInt64] {
         return self.songAddresses[addr]!
     }
 
