@@ -48,6 +48,10 @@ pub contract MeloMint {
             MeloMint.userIdCount = MeloMint.userIdCount + 1
         }
 
+        pub fun getName(): String {
+            return self.name
+        }
+
         pub fun addFollowing(creatorId: UInt64) {
             self.following[creatorId] = true
         }
