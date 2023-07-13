@@ -74,7 +74,7 @@ pub contract MeloMint {
             return MeloMint.getUserById(userId: MeloMint.getUserIdByAddress(addr: userAddress)!)
         }
         var newUser: MeloMint.User = User(name: name, email: email, type: type, userAddress: userAddress)
-        self.users.insert(key: self.userIdCount, newUser)
+        self.users.insert(key: newUser.id, newUser)
         self.userAddresses.insert(key: userAddress, newUser.id)
         return newUser
     }
@@ -119,13 +119,23 @@ pub contract MeloMint {
             self.img = img
         }
 
-        pub fun updatePrice(price: UInt, addr: Address) {
-            self.price = price
+        pub fun updatePrice(newPrice: UInt) {
+            self.price = newPrice
         }
 
-        pub fun addNewSong(song: Song) {
-            self.songPublished[song.id] = true
+        pub fun addToSongPublished(songId: UInt64) {
+            self.songPublished[songId] = true
         }
+    }
+
+    pub fun addNewSong(creator: Creator, song: Song): Creator {
+        creator.addToSongPublished(songId: song.id)
+        return creator
+    }
+
+    pub fun updatePrice(creator: Creator, newPrice: UInt) {
+        creator.updatePrice(newPrice: newPrice)
+        self.creators[creator.id] = creator
     }
 
     pub fun CreateCreator(name: String, email: String, type: String, creatorAdress: Address): Creator? {
@@ -133,7 +143,7 @@ pub contract MeloMint {
             return MeloMint.getCreatorById(creatorId: MeloMint.getCreatorIdByAddress(addr: creatorAdress)!)
         }
         var newCreator: MeloMint.Creator = Creator(name: name, email: email, type: type, creatorAdress: creatorAdress)
-        self.creators.insert(key: self.creatorIdCount, newCreator)
+        self.creators.insert(key: newCreator.id, newCreator)
         self.creatorAddresses.insert(key: creatorAdress, newCreator.id)
         return newCreator
     }
@@ -170,22 +180,16 @@ pub contract MeloMint {
     }
 
     pub fun createSong(name: String, creator: Address, img: String, url: String, creatorId: UInt64): Song? {
-        if MeloMint.isCreatorExists(creatorId: creatorId) == true {
-            log(creatorId)
-            if creator == MeloMint.getCreatorById(creatorId: creatorId)!.creatorAddress {
-                var newSong: MeloMint.Song = Song(name: name, creator: creator, img: img, url: url)
-                self.getCreatorById(creatorId: creatorId)!.addNewSong(song: newSong)
-                self.songs.insert(key: self.songIdCount, newSong)
-                if MeloMint.songAddresses.containsKey(creator) {
-                    self.songAddresses[creator]!.append(newSong.id)
-                } else {
-                    MeloMint.songAddresses.insert(key: creator, [newSong.id])
-                }
-                return newSong
-            }
-            return nil
+        var newSong: MeloMint.Song = Song(name: name, creator: creator, img: img, url: url)
+        let creatorStruct: MeloMint.Creator? = MeloMint.getCreatorById(creatorId: creatorId)
+        MeloMint.creators[creatorStruct!.id] = MeloMint.addNewSong(creator: creatorStruct!, song: newSong)
+        MeloMint.songs.insert(key: self.songIdCount, newSong)
+        if MeloMint.songAddresses.containsKey(creator) {
+            MeloMint.songAddresses[creator]!.append(newSong.id)
+        } else {
+            MeloMint.songAddresses.insert(key: creator, [newSong.id])
         }
-        return nil
+        return newSong
     }
     
     pub resource interface SongReceiver {
