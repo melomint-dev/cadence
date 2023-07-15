@@ -111,8 +111,8 @@ pub contract MeloMint {
             self.follower[userId] = true
         }
 
-        pub fun createSongCollection(): @SongCollection {
-            return <-create SongCollection(ownerId: self.id)
+        pub fun createSongCollection(creatorId: UInt64): @SongCollection {
+            return <- create MeloMint.SongCollection(ownerId: creatorId)
         }
 
         pub fun updateImage(img: String) {
@@ -126,6 +126,10 @@ pub contract MeloMint {
         pub fun addToSongPublished(songId: UInt64) {
             self.songPublished[songId] = true
         }
+    }
+
+    pub fun newSongCollection(creatorId: UInt64): @SongCollection {
+        return <- create MeloMint.SongCollection(ownerId: creatorId)
     }
 
     pub fun addNewSong(creator: Creator, song: Song): Creator {
@@ -183,7 +187,7 @@ pub contract MeloMint {
         var newSong: MeloMint.Song = Song(name: name, creator: creator, img: img, url: url)
         let creatorStruct: MeloMint.Creator? = MeloMint.getCreatorById(creatorId: creatorId)
         MeloMint.creators[creatorStruct!.id] = MeloMint.addNewSong(creator: creatorStruct!, song: newSong)
-        MeloMint.songs.insert(key: self.songIdCount, newSong)
+        MeloMint.songs.insert(key: newSong.id, newSong)
         if MeloMint.songAddresses.containsKey(creator) {
             MeloMint.songAddresses[creator]!.append(newSong.id)
         } else {
@@ -194,7 +198,7 @@ pub contract MeloMint {
     
     pub resource interface SongReceiver {
         pub fun isSongExists(songId: UInt64): Bool
-        pub fun getSongAsset(songId: UInt64): String
+        pub fun getSongAsset(songId: UInt64): String?
     }
 
     pub resource SongCollection: SongReceiver {
@@ -208,14 +212,12 @@ pub contract MeloMint {
             return self.songCollections[songId] != nil
         }
 
-        pub fun getSongAsset(songId: UInt64): String {
-            return self.songCollections[songId]!
+        pub fun getSongAsset(songId: UInt64): String? {
+            return self.songCollections[songId]
         }
 
-        pub fun addSong(addr: Address, songId: UInt64, audioAsset: String) {
-            if (self.owner?.address == addr) {
-                self.songCollections[songId] = audioAsset
-            }
+        pub fun addSong(songId: UInt64, audioAsset: String) {
+            self.songCollections[songId] = audioAsset
         }
 
         init (ownerId: UInt64) {
