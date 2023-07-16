@@ -3,17 +3,12 @@ pub contract MeloMint {
   access(contract) var people: {Address: Person}
   access(contract) var songs: {String: Song}
 
-  pub enum PersonType: UInt8 {
-    pub case user
-    pub case artist
-  }
-
   pub struct Person {
     pub var id: Address
     pub var firstName: String
     pub var lastName: String
     pub var img: String
-    pub var type: PersonType
+    pub var type: Int      // 0 -> user, 1 -> artist
     pub var revenue: Int
     
     pub var subscribers: {Address: Bool}
@@ -25,7 +20,7 @@ pub contract MeloMint {
     pub var songsPublished: {String: Bool}
     pub var recentlyHeard: [String]
 
-    init(id: Address, firstName: String, lastName: String, type: PersonType) {
+    init(id: Address, firstName: String, lastName: String, type: Int) {
       self.id = id
       self.firstName = firstName
       self.lastName = lastName
@@ -139,7 +134,7 @@ pub contract MeloMint {
     }
   }
 
-  pub fun newPerson(id: Address, firstName: String, lastName: String, type: PersonType): Person {
+  pub fun newPerson(id: Address, firstName: String, lastName: String, type: Int): Person {
     if self.isPersonExists(id: id) {
       return self.getPersonByAddress(id: id)
     }
@@ -160,11 +155,20 @@ pub contract MeloMint {
     return self.people
   }
 
-  pub fun newSong(id: String, name: String, artist: Address, freeUrl: String, img: String, bannerImg: String): Song {
-    var song = Song(id: id, name: name, artist: artist, freeUrl: freeUrl, img: img, bannerImg: bannerImg)
-    self.songs[id] = song
-    self.getPersonByAddress(id: artist).structSongPublished(songId: song.id)
-    return song
+  pub fun newSong(id: String, name: String, artist: Address, freeUrl: String, img: String, bannerImg: String): Song? {
+    if self.getPersonByAddress(id: artist).type == 1 {
+      var song = Song(id: id, name: name, artist: artist, freeUrl: freeUrl, img: img, bannerImg: bannerImg)
+      self.songs[id] = song
+      let artist = self.getPersonByAddress(id: artist)
+      artist.structSongPublished(songId: id)
+      self.people[artist.id] = artist
+      return song
+    }
+    return nil
+  }
+
+  pub fun getSongs(): {String: Song} {
+    return self.songs
   }
 
   init() {
