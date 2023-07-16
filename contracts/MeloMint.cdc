@@ -95,11 +95,15 @@ pub contract MeloMint {
   }
 
   pub fun changePersonLikedSongs(person: AuthAccount, songId: String) {
-    self.people[person.address]!.structAddToLikedSongs(songId: songId)
+    if self.isSongExists(songId: songId) {
+      self.people[person.address]!.structAddToLikedSongs(songId: songId)
+    }
   }
 
   pub fun addRecentlyHeard(person: AuthAccount, songId: String) {
-    self.people[person.address]!.structAddToRecentlyHeard(songId: songId)
+    if self.isSongExists(songId: songId) {
+      self.people[person.address]!.structAddToRecentlyHeard(songId: songId)
+    }
   }  
 
   pub struct Song {
