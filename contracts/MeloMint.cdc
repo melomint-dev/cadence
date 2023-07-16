@@ -34,8 +34,8 @@ pub contract MeloMint {
       self.NFTprice = 0
       self.subscriptionTill = 0.0
 
-      self.likedSongs = {}
-      self.songsPublished = {}
+      self.likedSongs = {}  // will add from user side, but abt the creator side?
+      self.songsPublished = {}  // no need for public function
       self.recentlyHeard = []
     }
 
@@ -43,10 +43,20 @@ pub contract MeloMint {
       self.img = img
     }
 
+    pub fun structUpdateType(newType: Int) {
+      self.type = newType
+    }
+
+    pub fun structUpdateRevenue(revenue: Int) {
+      self.revenue = revenue
+    }
+
+    // TODO: securely update
     pub fun structAddSubscriber(userAddress: Address) {
       self.subscribers[userAddress] = true
     }
 
+    // TODO: securely update
     pub fun structAddSubsribedTo(artistAddress: Address) {
       self.subscribedTo[artistAddress] = true
     }
@@ -67,6 +77,30 @@ pub contract MeloMint {
       self.recentlyHeard.append(songId);
     }
   }
+
+  pub fun updatePersonImage(person: AuthAccount, img: String) {
+    self.people[person.address]!.structUpdateImg(img: img)
+  }
+
+  pub fun changePersonType(person: AuthAccount, newType: Int) {
+    self.people[person.address]!.structUpdateType(newType: newType)
+  }
+
+  pub fun changePersonRevenue(person: AuthAccount, revenue: Int) {
+    self.people[person.address]!.structUpdateRevenue(revenue: revenue)
+  }
+
+  pub fun changePersonNFTPrice(person: AuthAccount, price: Int) {
+    self.people[person.address]!.structUpdateNFTprice(newPrice: price)
+  }
+
+  pub fun changePersonLikedSongs(person: AuthAccount, songId: String) {
+    self.people[person.address]!.structAddToLikedSongs(songId: songId)
+  }
+
+  pub fun addRecentlyHeard(person: AuthAccount, songId: String) {
+    self.people[person.address]!.structAddToRecentlyHeard(songId: songId)
+  }  
 
   pub struct Song {
     pub var id: String
@@ -155,13 +189,11 @@ pub contract MeloMint {
     return self.people
   }
 
-  pub fun newSong(id: String, name: String, artist: Address, freeUrl: String, img: String, bannerImg: String): Song? {
-    if self.getPersonByAddress(id: artist).type == 1 {
-      var song = Song(id: id, name: name, artist: artist, freeUrl: freeUrl, img: img, bannerImg: bannerImg)
+  pub fun newSong(id: String, name: String, artist: AuthAccount, freeUrl: String, img: String, bannerImg: String): Song? {
+    if self.getPersonByAddress(id: artist.address).type == 1 {
+      var song = Song(id: id, name: name, artist: artist.address, freeUrl: freeUrl, img: img, bannerImg: bannerImg)
       self.songs[id] = song
-      let artist = self.getPersonByAddress(id: artist)
-      artist.structSongPublished(songId: id)
-      self.people[artist.id] = artist
+      self.people[artist.address]!.structSongPublished(songId: id)
       return song
     }
     return nil
@@ -169,6 +201,14 @@ pub contract MeloMint {
 
   pub fun getSongs(): {String: Song} {
     return self.songs
+  }
+
+  pub fun isSongExists(songId: String): Bool {
+    return self.songs.containsKey(songId)
+  }
+
+  pub fun getSongById(songId: String): Song {
+    return self.songs[songId]!
   }
 
   init() {
