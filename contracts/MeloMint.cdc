@@ -1,291 +1,174 @@
 pub contract MeloMint {
 
-    pub let SongCollectionStoragePath: StoragePath
-    pub let SongCollectionPrivatePath: PrivatePath
+  access(contract) var people: {Address: Person}
+  access(contract) var songs: {String: Song}
 
-    access(contract) var users: {UInt64: User}
-    access(contract) var creators: {UInt64: Creator}
-    access(contract) var songs: {UInt64: Song}
+  pub enum PersonType: UInt8 {
+    pub case user
+    pub case artist
+  }
 
-    access(contract) var userAddresses: {Address: UInt64}
-    access(contract) var creatorAddresses: {Address: UInt64}
-    access(contract) var songAddresses: {Address: [UInt64]}
-
-    access(contract) var userIdCount: UInt64
-    access(contract) var creatorIdCount: UInt64
-    access(contract) var songIdCount: UInt64
-
-    pub struct User {
-        pub var id: UInt64
-        pub var name: String
-        pub var email: String
-        pub var img: String
-
-        // map between creatorId and following
-        pub var following: {UInt64: Bool}
-
-        // list of songId recentlyHeard
-        pub var recentlyHeard: [UInt64]
-
-        // default User
-        pub var type: String
-
-        // list of all liked SongIds
-        pub var likedSongs: [UInt64]
-
-        pub var userAddress: Address
-
-        init (name: String, email: String, type: String, userAddress: Address) {
-            self.id = MeloMint.userIdCount
-            self.name = name
-            self.email = email
-            self.img = ""
-            self.following = {}
-            self.recentlyHeard = []
-            self.type = type
-            self.likedSongs = []
-            self.userAddress = userAddress
-            MeloMint.userIdCount = MeloMint.userIdCount + 1
-        }
-
-        pub fun getName(): String {
-            return self.name
-        }
-
-        pub fun addFollowing(creatorId: UInt64) {
-            self.following[creatorId] = true
-        }
-
-        pub fun updateImage(img: String) {
-            self.img = img
-        }
-
-        pub fun addToLikedSongs(songId: UInt64) {
-            self.likedSongs.append(songId)
-        }
-
-        pub fun addToRecentlyHeard(songId: UInt64) {
-            self.recentlyHeard.append(songId)
-        }
-    }
-
-    pub fun createUser(name: String, email: String, type: String, userAddress: Address): User? {
-        if MeloMint.userAddresses.containsKey(userAddress) {
-            return MeloMint.getUserById(userId: MeloMint.getUserIdByAddress(addr: userAddress)!)
-        }
-        var newUser: MeloMint.User = User(name: name, email: email, type: type, userAddress: userAddress)
-        self.users.insert(key: newUser.id, newUser)
-        self.userAddresses.insert(key: userAddress, newUser.id)
-        return newUser
-    }
-
-    pub struct Creator {
-        pub var id: UInt64
-        pub var name: String
-        pub var email: String
-        pub var type: String
-
-        // map between userId and isFollower
-        pub var follower: {UInt64: Bool}
-        pub var price: UInt
-        pub var img: String
-        pub var creatorAddress: Address
-
-        // a map between songId and the Song
-        pub var songPublished: {UInt64: Bool}
-
-        init(name: String, email: String, type: String, creatorAdress: Address) {
-            self.songPublished = {}
-            self.id = MeloMint.creatorIdCount
-            self.name = name
-            self.email = email
-            self.type = type
-            self.price = 0
-            self.follower = {}
-            self.img = ""
-            self.creatorAddress = creatorAdress
-            MeloMint.creatorIdCount = MeloMint.creatorIdCount + 1
-        }
-
-        pub fun addFollower(userId: UInt64) {
-            self.follower[userId] = true
-        }
-
-        pub fun createSongCollection(creatorId: UInt64): @SongCollection {
-            return <- create MeloMint.SongCollection(ownerId: creatorId)
-        }
-
-        pub fun updateImage(img: String) {
-            self.img = img
-        }
-
-        pub fun updatePrice(newPrice: UInt) {
-            self.price = newPrice
-        }
-
-        pub fun addToSongPublished(songId: UInt64) {
-            self.songPublished[songId] = true
-        }
-    }
-
-    pub fun newSongCollection(creatorId: UInt64): @SongCollection {
-        return <- create MeloMint.SongCollection(ownerId: creatorId)
-    }
-
-    pub fun addNewSong(creator: Creator, song: Song): Creator {
-        creator.addToSongPublished(songId: song.id)
-        return creator
-    }
-
-    pub fun updatePrice(creator: Creator, newPrice: UInt) {
-        creator.updatePrice(newPrice: newPrice)
-        self.creators[creator.id] = creator
-    }
-
-    pub fun CreateCreator(name: String, email: String, type: String, creatorAdress: Address): Creator? {
-        if MeloMint.creatorAddresses.containsKey(creatorAdress) {
-            return MeloMint.getCreatorById(creatorId: MeloMint.getCreatorIdByAddress(addr: creatorAdress)!)
-        }
-        var newCreator: MeloMint.Creator = Creator(name: name, email: email, type: type, creatorAdress: creatorAdress)
-        self.creators.insert(key: newCreator.id, newCreator)
-        self.creatorAddresses.insert(key: creatorAdress, newCreator.id)
-        return newCreator
-    }
-
-    pub struct Song {
-        pub let id: UInt64
-        pub var name: String
-        pub let creator: Address
-        pub var numberOfLikes: UInt
-        pub var img: String
-        pub var createdAt: UFix64
-        pub var url: String
-        pub var similarSongs: [{UInt64: String}]
-
-        init(name: String, creator: Address, img: String, url: String) {
-            self.id = MeloMint.songIdCount
-            self.name = name
-            self.creator = creator
-            self.numberOfLikes = 0
-            self.img = img
-            self.url = url
-            self.createdAt = getCurrentBlock().timestamp
-            self.similarSongs = []
-            MeloMint.songIdCount = MeloMint.songIdCount + 1
-        }
-
-        pub fun addLike() {
-            self.numberOfLikes = self.numberOfLikes + 1
-        }
-
-        pub fun addSimilarity (songId: UInt64, timestamp: String) {
-            self.similarSongs.append({songId: timestamp})
-        }
-    }
-
-    pub fun createSong(name: String, creator: Address, img: String, url: String, creatorId: UInt64): Song? {
-        var newSong: MeloMint.Song = Song(name: name, creator: creator, img: img, url: url)
-        let creatorStruct: MeloMint.Creator? = MeloMint.getCreatorById(creatorId: creatorId)
-        MeloMint.creators[creatorStruct!.id] = MeloMint.addNewSong(creator: creatorStruct!, song: newSong)
-        MeloMint.songs.insert(key: newSong.id, newSong)
-        if MeloMint.songAddresses.containsKey(creator) {
-            MeloMint.songAddresses[creator]!.append(newSong.id)
-        } else {
-            MeloMint.songAddresses.insert(key: creator, [newSong.id])
-        }
-        return newSong
-    }
+  pub struct Person {
+    pub var id: Address
+    pub var firstName: String
+    pub var lastName: String
+    pub var img: String
+    pub var type: PersonType
+    pub var revenue: Int
     
-    pub resource interface SongReceiver {
-        pub fun isSongExists(songId: UInt64): Bool
-        pub fun getSongAsset(songId: UInt64): String?
+    pub var subscribers: {Address: Bool}
+    pub var subscribedTo: {Address: Bool}
+
+    pub var NFTprice: Int
+    pub var subscriptionTill: UFix64
+    pub var likedSongs: {String: Bool}
+    pub var songsPublished: {String: Bool}
+    pub var recentlyHeard: [String]
+
+    init(id: Address, firstName: String, lastName: String, type: PersonType) {
+      self.id = id
+      self.firstName = firstName
+      self.lastName = lastName
+      self.img = ""
+      self.type = type
+      self.revenue = 0
+
+      self.subscribers = {}
+      self.subscribedTo = {}
+
+      self.NFTprice = 0
+      self.subscriptionTill = 0.0
+
+      self.likedSongs = {}
+      self.songsPublished = {}
+      self.recentlyHeard = []
     }
 
-    pub resource SongCollection: SongReceiver {
-
-        pub let ownerId: UInt64
-
-        // map between CreatorId and corresponding asset
-        pub var songCollections: {UInt64: String}
-
-        pub fun isSongExists(songId: UInt64): Bool {
-            return self.songCollections[songId] != nil
-        }
-
-        pub fun getSongAsset(songId: UInt64): String? {
-            return self.songCollections[songId]
-        }
-
-        pub fun addSong(songId: UInt64, audioAsset: String) {
-            self.songCollections[songId] = audioAsset
-        }
-
-        init (ownerId: UInt64) {
-            self.songCollections = {}
-            self.ownerId = ownerId
-        }
+    pub fun structUpdateImg(img: String) {
+      self.img = img
     }
 
-    pub fun getUsers(): {UInt64: User} {
-        return self.users
+    pub fun structAddSubscriber(userAddress: Address) {
+      self.subscribers[userAddress] = true
     }
 
-    pub fun isUserExists(userId: UInt64): Bool {
-        return self.users[userId] != nil
+    pub fun structAddSubsribedTo(artistAddress: Address) {
+      self.subscribedTo[artistAddress] = true
     }
 
-    pub fun getUserIdByAddress(addr: Address): UInt64? {
-        return self.userAddresses[addr]
+    pub fun structUpdateNFTprice(newPrice: Int) {
+      self.NFTprice = newPrice
     }
 
-    pub fun getUserById(userId: UInt64): User? {
-        return self.users[userId]
+    pub fun structAddToLikedSongs(songId: String) {
+      self.likedSongs[songId] = true
     }
 
-    pub fun getCreators(): {UInt64: Creator} {
-        return self.creators
+    pub fun structSongPublished(songId: String) {
+      self.songsPublished[songId] = true
     }
 
-    pub fun isCreatorExists(creatorId: UInt64): Bool {
-        return self.creators[creatorId] != nil
+    pub fun structAddToRecentlyHeard(songId: String) {
+      self.recentlyHeard.append(songId);
+    }
+  }
+
+  pub struct Song {
+    pub var id: String
+    pub var name: String
+    pub var artist: Address
+    pub var freeUrl: String
+    pub var img: String
+    pub var bannerImg: String
+    pub var uploadedAt: UFix64
+
+    pub var similarSongs: {String: [String]} // original
+    pub var similarTo: {String: [String]} // copied
+
+    pub var likes: Int
+    pub var plays: {String: Int}
+    pub var playTime: {String: Int}
+
+    init(id: String, name: String, artist: Address, freeUrl: String, img: String, bannerImg: String) {
+      self.id = id
+      self.name = name
+      self.artist = artist
+      self.freeUrl = freeUrl
+      self.img = img
+      self.bannerImg = bannerImg
+      self.uploadedAt = getCurrentBlock().timestamp
+      self.similarSongs = {}
+      self.similarTo = {}
+      self.likes = 0
+      self.plays = {}
+      self.playTime = {}
     }
 
-    pub fun getCreatorIdByAddress(addr: Address): UInt64? {
-        return self.creatorAddresses[addr]
+    pub fun structAddSimilarSongs(songId: String, data: [String]) {
+      self.similarSongs[songId] = data
     }
 
-    pub fun getCreatorById(creatorId: UInt64): Creator? {
-        return self.creators[creatorId]
+    pub fun structAddSimilarTo(songId: String, data: [String]) {
+      self.similarTo[songId] = data
     }
 
-    pub fun getSongs(): {UInt64: Song} {
-        return self.songs
+    pub fun structAddLikes(like: Int) {
+      self.likes = self.likes + like
     }
 
-    pub fun isSongExists(songId: UInt64): Bool {
-        return self.songs[songId] != nil
+    pub fun structAddPlays(day: String, play: Int) {
+      self.plays[day] = play
+    }
+  }
+
+  pub resource SongCollection {
+    pub var goldSongs: {String: String}
+    pub var NFTSongs: {String: String}
+
+    init(collectionOwner: Address) {
+      self.goldSongs = {}
+      self.NFTSongs = {}
     }
 
-    pub fun getSongsIdByAddress(addr: Address): [UInt64]? {
-        return self.songAddresses[addr]
+    pub fun structAddGoldSongs(songId: String, songHash: String) {
+      self.goldSongs[songId] = songHash
     }
 
-    pub fun getSongById(songId: UInt64): Song? {
-        return self.songs[songId]
+    pub fun structAddNFTSongs(songId: String, songHash: String) {
+      self.NFTSongs[songId] = songHash
     }
+  }
 
-    init() {
-        self.users = {}
-        self.creators = {}
-        self.songs = {}
-        self.userAddresses = {}
-        self.creatorAddresses = {}
-        self.songAddresses = {}
-        self.creatorIdCount = 0
-        self.songIdCount = 0
-        self.userIdCount = 0
-
-        self.SongCollectionStoragePath = /storage/songCollection
-        self.SongCollectionPrivatePath = /private/songCollection
+  pub fun newPerson(id: Address, firstName: String, lastName: String, type: PersonType): Person {
+    if self.isPersonExists(id: id) {
+      return self.getPersonByAddress(id: id)
     }
+    var person = Person(id: id, firstName: firstName, lastName: lastName, type: type)
+    self.people[id] = person
+    return person
+  }
+
+  pub fun isPersonExists(id: Address): Bool {
+    return self.people.containsKey(id)
+  }
+
+  pub fun getPersonByAddress(id: Address): Person {
+    return self.people[id]!
+  }
+
+  pub fun getPeople(): {Address: Person} {
+    return self.people
+  }
+
+  pub fun newSong(id: String, name: String, artist: Address, freeUrl: String, img: String, bannerImg: String): Song {
+    var song = Song(id: id, name: name, artist: artist, freeUrl: freeUrl, img: img, bannerImg: bannerImg)
+    self.songs[id] = song
+    self.getPersonByAddress(id: artist).structSongPublished(songId: song.id)
+    return song
+  }
+
+  init() {
+    self.people = {}
+    self.songs = {}
+  }
 }
