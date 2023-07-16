@@ -83,6 +83,13 @@ pub contract MeloMint {
   }
 
   pub fun changePersonType(person: AuthAccount, newType: Int) {
+
+    /*
+      CHARGE THE PERSON
+      TO CHANGE THE TYPE
+      WE ALREADY HAVE AuthAccount
+    */
+
     self.people[person.address]!.structUpdateType(newType: newType)
   }
 
@@ -161,6 +168,14 @@ pub contract MeloMint {
     init(collectionOwner: Address) {
       self.goldSongs = {}
       self.NFTSongs = {}
+    }
+
+    pub fun structGetGoldSong(songId: String): String {
+      return self.goldSongs[songId]!
+    }
+
+    pub fun structGetNFTSongs(songId: String): String {
+      return self.NFTSongs[songId]!
     }
 
     pub fun structAddGoldSongs(songId: String, songHash: String) {
