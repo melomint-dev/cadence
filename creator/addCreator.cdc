@@ -1,10 +1,11 @@
-import MeloMint from 0x11e582a74930c1de
+import MeloMint from 0xMeloMint
 
-transaction(name: String, email: String, type: String) {
+transaction (firstName: String, lastName: String, type: Int) {
   prepare(signer: AuthAccount) {
-    MeloMint.CreateCreator(name: name, email: email, type: type, creatorAdress: signer.address)
+    MeloMint.newPerson(id: signer.address, firstName: firstName, lastName: lastName, type: type)
   }
 
   execute {
+    log(MeloMint.getPeople())
   }
 }
