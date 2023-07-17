@@ -165,11 +165,11 @@ pub contract MeloMint {
     pub var plays: {String: Int}
     pub var playTime: {String: Int}
 
-    init(id: String, name: String, artist: Address, img: String) {
+    init(id: String, name: String, artist: Address, img: String, freeUrl: String) {
       self.id = id
       self.name = name
       self.artist = artist
-      self.freeUrl = ""
+      self.freeUrl = freeUrl
       self.img = img
       self.uploadedAt = getCurrentBlock().timestamp
       self.similarSongs = {}
@@ -329,9 +329,9 @@ pub contract MeloMint {
     return self.people
   }
 
-  pub fun newSong(id: String, name: String, artist: AuthAccount, img: String): Song? {
+  pub fun newSong(id: String, name: String, artist: AuthAccount, img: String, freeUrl: String): Song? {
     if self.getPersonByAddress(id: artist.address).type == 1 {
-      var song = Song(id: id, name: name, artist: artist.address, img: img)
+      var song = Song(id: id, name: name, artist: artist.address, img: img, freeUrl: freeUrl)
       self.songs[id] = song
       self.people[artist.address]!.structSongPublished(songId: id)
       return song
