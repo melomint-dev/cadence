@@ -95,6 +95,18 @@ pub contract MeloMint {
     }
   }
 
+  pub fun personAddSubscriber(person: AuthAccount, userId: Address) {
+    if person.address == self.deployer {
+      self.people[person.address]!.structAddSubscriber(userAddress: userId)
+    }
+  }
+
+  pub fun personAddSubscribedTo(person: AuthAccount, artistId: Address) {
+    if person.address == self.deployer {
+      self.people[person.address]!.structAddSubsribedTo(artistAddress: artistId)
+    }
+  }
+
   pub fun updatePersonImage(person: AuthAccount, img: String) {
     self.people[person.address]!.structUpdateImg(img: img)
   }
