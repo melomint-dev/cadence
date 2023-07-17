@@ -82,6 +82,10 @@ pub contract MeloMint {
       self.NFTimage = newNFTImage
     }
 
+    access(account) fun structUpdateSubscription(newDate: UFix64) {
+      self.subscriptionTill = newDate
+    }
+
     access(account) fun structAddToLikedSongs(songId: String) {
       self.likedSongs[songId] = true
     }
@@ -95,20 +99,24 @@ pub contract MeloMint {
     }
   }
 
-  pub fun personAddSubscriber(person: AuthAccount, userId: Address) {
+  pub fun personAddSubscriber(person: AuthAccount, userId: Address, artistId: Address) {
     if person.address == self.deployer {
-      self.people[person.address]!.structAddSubscriber(userAddress: userId)
+      self.people[artistId]!.structAddSubscriber(userAddress: userId)
     }
   }
 
-  pub fun personAddSubscribedTo(person: AuthAccount, artistId: Address) {
+  pub fun personAddSubscribedTo(person: AuthAccount, artistId: Address, userId: Address) {
     if person.address == self.deployer {
-      self.people[person.address]!.structAddSubsribedTo(artistAddress: artistId)
+      self.people[userId]!.structAddSubsribedTo(artistAddress: artistId)
     }
   }
 
   pub fun updatePersonImage(person: AuthAccount, img: String) {
     self.people[person.address]!.structUpdateImg(img: img)
+  }
+
+  pub fun updateSubscriptionTime(person: AuthAccount, userId: Address, newTime: UFix64) {
+    self.people[userId]!.structUpdateSubscription(newDate: newTime)
   }
 
   pub fun changePersonType(person: AuthAccount, newType: Int) {
