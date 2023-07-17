@@ -116,7 +116,9 @@ pub contract MeloMint {
   }
 
   pub fun updateSubscriptionTime(person: AuthAccount, userId: Address, newTime: UFix64) {
-    self.people[userId]!.structUpdateSubscription(newDate: newTime)
+    if person.address == self.deployer {
+      self.people[userId]!.structUpdateSubscription(newDate: newTime)
+    }
   }
 
   pub fun changePersonType(person: AuthAccount, newType: Int) {
@@ -222,10 +224,6 @@ pub contract MeloMint {
     access(account) fun structUpdateImg(img: String) {
       self.img = img
     }
-
-    access(account) fun structPreRelease(preRelease: UFix64) {
-      self.preRelease = preRelease
-    }
   }
 
   pub fun songAddSimilarSongs(signer: AuthAccount, mySongId: String, myCopiedSongId: String, data: [String]) {
@@ -275,10 +273,6 @@ pub contract MeloMint {
       self.songs[songId]!.structUpdateImg(img: img)
     }
   }  
-
-  pub fun songUpdatePreRelease(signer: AuthAccount, songId: String, preRelease: UFix64) {
-    self.songs[songId]!.structPreRelease(preRelease: preRelease)
-  }
 
   pub resource SongCollection {
     pub var goldSongs: {String: String}
