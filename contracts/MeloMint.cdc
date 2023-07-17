@@ -176,7 +176,7 @@ pub contract MeloMint {
     pub var plays: {String: Int}
     pub var playTime: {String: Int}
 
-    init(id: String, name: String, artist: Address, img: String, freeUrl: String, duration: UFix64) {
+    init(id: String, name: String, artist: Address, img: String, freeUrl: String, duration: UFix64, preRelease: UFix64) {
       self.id = id
       self.name = name
       self.artist = artist
@@ -223,6 +223,10 @@ pub contract MeloMint {
 
     access(account) fun structUpdateImg(img: String) {
       self.img = img
+    }
+
+    access(account) fun structPreRelease(preRelease: UFix64) {
+      self.preRelease = preRelease
     }
   }
 
@@ -333,9 +337,9 @@ pub contract MeloMint {
     return self.people
   }
 
-  pub fun newSong(id: String, name: String, artist: AuthAccount, img: String, freeUrl: String, duration: UFix64): Song? {
+  pub fun newSong(id: String, name: String, artist: AuthAccount, img: String, freeUrl: String, duration: UFix64, preRelease: UFix64): Song? {
     if self.getPersonByAddress(id: artist.address).type == 1 {
-      var song = Song(id: id, name: name, artist: artist.address, img: img, freeUrl: freeUrl, duration: duration)
+      var song = Song(id: id, name: name, artist: artist.address, img: img, freeUrl: freeUrl, duration: duration, preRelease: preRelease)
       self.songs[id] = song
       self.people[artist.address]!.structSongPublished(songId: id)
       return song
