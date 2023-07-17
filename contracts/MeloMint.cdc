@@ -153,6 +153,7 @@ pub contract MeloMint {
     pub var img: String
     pub var length: UFix64
     pub var uploadedAt: UFix64
+    pub var duration: UFix64
 
     // TODO
     // pre-release untill
@@ -165,13 +166,14 @@ pub contract MeloMint {
     pub var plays: {String: Int}
     pub var playTime: {String: Int}
 
-    init(id: String, name: String, artist: Address, img: String, freeUrl: String) {
+    init(id: String, name: String, artist: Address, img: String, freeUrl: String, duration: UFix64) {
       self.id = id
       self.name = name
       self.artist = artist
       self.freeUrl = freeUrl
       self.img = img
       self.uploadedAt = getCurrentBlock().timestamp
+      self.duration = duration
       self.similarSongs = {}
       self.similarTo = {}
       self.likes = 0
