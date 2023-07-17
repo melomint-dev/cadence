@@ -331,9 +331,9 @@ pub contract MeloMint {
     return self.people
   }
 
-  pub fun newSong(id: String, name: String, artist: AuthAccount, img: String, freeUrl: String): Song? {
+  pub fun newSong(id: String, name: String, artist: AuthAccount, img: String, freeUrl: String, duration: UFix64): Song? {
     if self.getPersonByAddress(id: artist.address).type == 1 {
-      var song = Song(id: id, name: name, artist: artist.address, img: img, freeUrl: freeUrl)
+      var song = Song(id: id, name: name, artist: artist.address, img: img, freeUrl: freeUrl, duration: duration)
       self.songs[id] = song
       self.people[artist.address]!.structSongPublished(songId: id)
       return song
