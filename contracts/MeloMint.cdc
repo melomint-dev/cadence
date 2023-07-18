@@ -90,6 +90,10 @@ pub contract MeloMint {
       self.likedSongs[songId] = true
     }
 
+    access(account) fun structRemoveToLikedSongs(songId: String) {
+      self.likedSongs.remove(key: songId)
+    }
+
     access(account) fun structSongPublished(songId: String) {
       self.songsPublished[songId] = true
     }
@@ -146,6 +150,12 @@ pub contract MeloMint {
   pub fun changePersonLikedSongs(person: AuthAccount, songId: String) {
     if self.isSongExists(songId: songId) {
       self.people[person.address]!.structAddToLikedSongs(songId: songId)
+    }
+  }
+
+  pub fun personRemoveLikedSongs(person: AuthAccount, songId: String) {
+    if self.isSongExists(songId: songId) {
+      self.people[person.address]!.structRemoveToLikedSongs(songId: songId)
     }
   }
 
