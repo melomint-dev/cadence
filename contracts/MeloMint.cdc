@@ -190,7 +190,7 @@ pub contract MeloMint {
       self.plays = {}
       self.playTime = {}
       self.length = 0.0
-      self.preRelease = getCurrentBlock().timestamp
+      self.preRelease = preRelease
     }
 
     access(account) fun structAddSimilarSongs(songId: String, data: [String]) {
